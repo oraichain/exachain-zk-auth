@@ -130,18 +130,22 @@ const setAccount = async (
   // set account address
   const poseidon = await circomlib.buildPoseidon();
   const hash = poseidon([hexSub, hexAud]);
-  const setAccountAddressTx = await verifier.setAccountAddress(
-    poseidon.F.toString(hash),
-    address
-  );
+  const setAccountAddressTx = await verifier.setAccountAddress([
+    {
+      hashId: poseidon.F.toString(hash),
+      account: address,
+    },
+  ]);
   await setAccountAddressTx.wait();
 
   // set account hash
   const accountHash = poseidon([hexSub, hexAud, address]);
-  const setAccountHashTx = await verifier.setAccountHash(
-    address,
-    poseidon.F.toString(accountHash)
-  );
+  const setAccountHashTx = await verifier.setAccountHash([
+    {
+      account: address,
+      accHash: poseidon.F.toString(accountHash),
+    },
+  ]);
   await setAccountHashTx.wait();
 };
 

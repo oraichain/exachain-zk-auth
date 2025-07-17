@@ -1,6 +1,7 @@
 import { ethers, Wallet } from "ethers";
 import { ViexProofVerifier__factory } from "@oraichain/evm-entry-point";
 import "dotenv/config";
+import * as snarkjs from "snarkjs";
 
 const main = async () => {
   const rpc = "http://128.199.120.187:8545";
@@ -15,6 +16,31 @@ const main = async () => {
   // // add whitelist address
   // const whitelistAddress = "0x8c7E0A841269a01c0Ab389Ce8Fb3Cf150A94E797";
   // await setWhitelist(wallet, contractAddress, whitelistAddress);
+};
+
+const verifyProof = async (
+  signer: Wallet,
+  contract: string,
+  proof: snarkjs.Groth16Proof,
+  publicSignals: snarkjs.PublicSignals
+): Promise<boolean> => {
+  const verifier = new ethers.Contract(
+    contract,
+    ViexProofVerifier__factory.abi,
+    signer
+  );
+
+  // Flatten proof for contract call
+  const calldata = await snarkjs.groth16.exportSolidityCallData(
+    proof,
+    publicSignals
+  );
+  const args = JSON.parse("[" + calldata + "]");
+
+  // Send to contract
+  const valid = await verifier.verifyProof(...args);
+
+  return valid;
 };
 
 const setWhitelist = async (

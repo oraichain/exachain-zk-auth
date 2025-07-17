@@ -62,7 +62,20 @@ contract ViexProofVerifier is Ownable {
     uint16 constant pLastMem = 896;
 
     /**
-     * @dev Custom data
+     * @dev Custom data type
+     */
+    struct AccountAddressInfo {
+        string hashId;
+        address account;
+    }
+
+    struct AccountHashInfo {
+        address account;
+        string accHash;
+    }
+
+    /**
+     * @dev Custom state data
      */
     // accountHash: hash of the account address, eg: 0xabc... => 897654321
     mapping(address => string) public accountHash;
@@ -113,45 +126,10 @@ contract ViexProofVerifier is Ownable {
     }
 
     /**
-     * @dev Set the account hash of an address
-     * @param _address: address to set the account hash of
-     * @param _accountHash: account hash to set
-     */
-    function setAccountHash(
-        address _address,
-        string memory _accountHash
-    ) public {
-        // check if the caller has authorization
-        require(
-            msg.sender == owner() || whitelistAddress[msg.sender],
-            "Not authorized"
-        );
-
-        // set the account hash
-        accountHash[_address] = _accountHash;
-    }
-
-    /**
-     * @dev Remove the account hash of an address
-     * @param _address: address to remove the account hash of
-     */
-    function removeAccountHash(address _address) public {
-        // check if the caller has authorization
-        require(
-            msg.sender == owner() || whitelistAddress[msg.sender],
-            "Not authorized"
-        );
-
-        // remove the account hash
-        delete accountHash[_address];
-    }
-
-    /**
      * @dev Set the account address of hash
-     * @param _hash: hash to set the account address of
-     * @param _address: account address to set
+     * @param _info: array of AccountAddressInfo
      */
-    function setAccountAddress(string memory _hash, address _address) public {
+    function setAccountAddress(AccountAddressInfo[] memory _info) public {
         // check if the caller has authorization
         require(
             msg.sender == owner() || whitelistAddress[msg.sender],
@@ -159,14 +137,16 @@ contract ViexProofVerifier is Ownable {
         );
 
         // set the account address
-        accountAddress[_hash] = _address;
+        for (uint256 i = 0; i < _info.length; i++) {
+            accountAddress[_info[i].hashId] = _info[i].account;
+        }
     }
 
     /**
      * @dev Remove the account address of hash
-     * @param _hash: hash to remove the account address of
+     * @param _hashes: array of hashes to remove the account address of
      */
-    function removeAccountAddress(string memory _hash) public {
+    function removeAccountAddress(string[] memory _hashes) public {
         // check if the caller has authorization
         require(
             msg.sender == owner() || whitelistAddress[msg.sender],
@@ -174,7 +154,43 @@ contract ViexProofVerifier is Ownable {
         );
 
         // remove the account address
-        delete accountAddress[_hash];
+        for (uint256 i = 0; i < _hashes.length; i++) {
+            delete accountAddress[_hashes[i]];
+        }
+    }
+
+    /**
+     * @dev Set the account hash of an address
+     * @param _infos: array of AccountHashInfo
+     */
+    function setAccountHash(AccountHashInfo[] memory _infos) public {
+        // check if the caller has authorization
+        require(
+            msg.sender == owner() || whitelistAddress[msg.sender],
+            "Not authorized"
+        );
+
+        // set the account hash
+        for (uint256 i = 0; i < _infos.length; i++) {
+            accountHash[_infos[i].account] = _infos[i].accHash;
+        }
+    }
+
+    /**
+     * @dev Remove the account hash of an address
+     * @param _accounts: array of accounts to remove the account hash of
+     */
+    function removeAccountHash(address[] memory _accounts) public {
+        // check if the caller has authorization
+        require(
+            msg.sender == owner() || whitelistAddress[msg.sender],
+            "Not authorized"
+        );
+
+        // remove the account hash
+        for (uint256 i = 0; i < _accounts.length; i++) {
+            delete accountHash[_accounts[i]];
+        }
     }
 
     /**
