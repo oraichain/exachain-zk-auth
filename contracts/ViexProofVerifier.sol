@@ -74,6 +74,13 @@ contract ViexProofVerifier is Ownable {
         string accHash;
     }
 
+    struct UpdateAccountInfo {
+        string hashId;
+        address oldAccount;
+        address newAccount;
+        string newAccountHash;
+    }
+
     /**
      * @dev Custom state data
      */
@@ -190,6 +197,29 @@ contract ViexProofVerifier is Ownable {
         // remove the account hash
         for (uint256 i = 0; i < _accounts.length; i++) {
             delete accountHash[_accounts[i]];
+        }
+    }
+
+    /**
+     * @dev Update the account address of hash
+     * @param _infos: array of UpdateAccountInfo
+     */
+    function updateAccount(UpdateAccountInfo[] memory _infos) public {
+        // check if the caller has authorization
+        require(
+            msg.sender == owner() || whitelistAddress[msg.sender],
+            "Not authorized"
+        );
+
+        // update the account address
+        for (uint256 i = 0; i < _infos.length; i++) {
+            // remove old account state
+            delete accountAddress[_infos[i].hashId];
+            delete accountHash[_infos[i].oldAccount];
+
+            // set new account state
+            accountAddress[_infos[i].hashId] = _infos[i].newAccount;
+            accountHash[_infos[i].newAccount] = _infos[i].newAccountHash;
         }
     }
 
