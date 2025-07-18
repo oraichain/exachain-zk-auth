@@ -62,26 +62,6 @@ contract ViexProofVerifier is Ownable {
     uint16 constant pLastMem = 896;
 
     /**
-     * @dev Custom data type
-     */
-    struct AccountAddressInfo {
-        string hashId;
-        address account;
-    }
-
-    struct AccountHashInfo {
-        address account;
-        string accHash;
-    }
-
-    struct UpdateAccountInfo {
-        string hashId;
-        address oldAccount;
-        address newAccount;
-        string newAccountHash;
-    }
-
-    /**
      * @dev Custom state data
      */
     // accountHash: hash of the account address, eg: 0xabc... => 897654321
@@ -134,9 +114,10 @@ contract ViexProofVerifier is Ownable {
 
     /**
      * @dev Set the account address of hash
-     * @param _info: array of AccountAddressInfo
+     * @param _hashId: hash id is hash of address info
+     * @param _account: account address
      */
-    function setAccountAddress(AccountAddressInfo[] memory _info) public {
+    function setAccountAddress(string memory _hashId, address _account) public {
         // check if the caller has authorization
         require(
             msg.sender == owner() || whitelistAddress[msg.sender],
@@ -144,16 +125,14 @@ contract ViexProofVerifier is Ownable {
         );
 
         // set the account address
-        for (uint256 i = 0; i < _info.length; i++) {
-            accountAddress[_info[i].hashId] = _info[i].account;
-        }
+        accountAddress[_hashId] = _account;
     }
 
     /**
      * @dev Remove the account address of hash
-     * @param _hashes: array of hashes to remove the account address of
+     * @param _hashId: hash id to remove the account address of
      */
-    function removeAccountAddress(string[] memory _hashes) public {
+    function removeAccountAddress(string memory _hashId) public {
         // check if the caller has authorization
         require(
             msg.sender == owner() || whitelistAddress[msg.sender],
@@ -161,16 +140,18 @@ contract ViexProofVerifier is Ownable {
         );
 
         // remove the account address
-        for (uint256 i = 0; i < _hashes.length; i++) {
-            delete accountAddress[_hashes[i]];
-        }
+        delete accountAddress[_hashId];
     }
 
     /**
      * @dev Set the account hash of an address
-     * @param _infos: array of AccountHashInfo
+     * @param _account: account address
+     * @param _accountHash: account hash is hash of user info and account address
      */
-    function setAccountHash(AccountHashInfo[] memory _infos) public {
+    function setAccountHash(
+        address _account,
+        string memory _accountHash
+    ) public {
         // check if the caller has authorization
         require(
             msg.sender == owner() || whitelistAddress[msg.sender],
@@ -178,16 +159,14 @@ contract ViexProofVerifier is Ownable {
         );
 
         // set the account hash
-        for (uint256 i = 0; i < _infos.length; i++) {
-            accountHash[_infos[i].account] = _infos[i].accHash;
-        }
+        accountHash[_account] = _accountHash;
     }
 
     /**
      * @dev Remove the account hash of an address
-     * @param _accounts: array of accounts to remove the account hash of
+     * @param _account: account address to remove the account hash of
      */
-    function removeAccountHash(address[] memory _accounts) public {
+    function removeAccountHash(address _account) public {
         // check if the caller has authorization
         require(
             msg.sender == owner() || whitelistAddress[msg.sender],
@@ -195,32 +174,7 @@ contract ViexProofVerifier is Ownable {
         );
 
         // remove the account hash
-        for (uint256 i = 0; i < _accounts.length; i++) {
-            delete accountHash[_accounts[i]];
-        }
-    }
-
-    /**
-     * @dev Update the account address of hash
-     * @param _infos: array of UpdateAccountInfo
-     */
-    function updateAccount(UpdateAccountInfo[] memory _infos) public {
-        // check if the caller has authorization
-        require(
-            msg.sender == owner() || whitelistAddress[msg.sender],
-            "Not authorized"
-        );
-
-        // update the account address
-        for (uint256 i = 0; i < _infos.length; i++) {
-            // remove old account state
-            delete accountAddress[_infos[i].hashId];
-            delete accountHash[_infos[i].oldAccount];
-
-            // set new account state
-            accountAddress[_infos[i].hashId] = _infos[i].newAccount;
-            accountHash[_infos[i].newAccount] = _infos[i].newAccountHash;
-        }
+        delete accountHash[_account];
     }
 
     /**
